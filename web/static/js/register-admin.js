@@ -28,3 +28,14 @@ document.querySelector("form").addEventListener("submit", async function (event)
         alert("An error occurred during registration. Please try again.");
     }
 });
+
+const showPasswordCheckbox = document.querySelector('#showPassword');
+const passwordInput = document.querySelector('#yourPassword');
+
+showPasswordCheckbox.addEventListener('change', function () {
+    if (this.checked) {
+        passwordInput.setAttribute('type', 'text');
+    } else {
+        passwordInput.setAttribute('type', 'password');
+    }
+});

@@ -34,3 +34,14 @@ async function login(event) {
         await showErrorMessage('Kesalahan Sistem', 'Terjadi kesalahan saat login. Silakan coba lagi.');
     }
 }
+
+const showPasswordCheckbox = document.querySelector('#showPassword');
+const passwordInput = document.querySelector('#password');
+
+showPasswordCheckbox.addEventListener('change', function () {
+    if (this.checked) {
+        passwordInput.setAttribute('type', 'text');
+    } else {
+        passwordInput.setAttribute('type', 'password');
+    }
+});
