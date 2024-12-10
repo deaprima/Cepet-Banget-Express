@@ -35,9 +35,3 @@ Jika Anda memiliki pertanyaan atau masukan terkait proyek ini, jangan ragu untuk
 
 ## 📜 **Lisensi**
 Project ini digunakan untuk memenuhi tugas akhir Basis Data
-
----
-
-🚀 **Cepet Banget Express** - Solusi ekspedisi yang cepat, aman, dan terpercaya!
-
-```
