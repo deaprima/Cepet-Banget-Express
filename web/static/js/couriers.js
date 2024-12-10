@@ -5,13 +5,73 @@ window.addEventListener('load', () => {
     }
 });
 
+async function checkDuplicateField(field, value) {
+    try {
+        const result = await eel.check_duplicate_courier_field(field, value)();
+        return result.isDuplicate;
+    } catch (error) {
+        console.error(`Error checking duplicate ${field}:`, error);
+        return true; // Anggap sebagai duplikat jika terjadi kesalahan
+    }
+}
+
+function showFieldError(inputElement, message) {
+    inputElement.classList.add('is-invalid');
+    let feedbackDiv = document.getElementById(`${inputElement.id}Feedback`);
+    if (!feedbackDiv) {
+        feedbackDiv = document.createElement('div');
+        feedbackDiv.id = `${inputElement.id}Feedback`;
+        feedbackDiv.className = 'invalid-feedback';
+        inputElement.parentNode.appendChild(feedbackDiv);
+    }
+    feedbackDiv.textContent = message;
+}
+
+function clearFieldError(inputElement) {
+    inputElement.classList.remove('is-invalid');
+    const feedbackDiv = document.getElementById(`${inputElement.id}Feedback`);
+    if (feedbackDiv) {
+        feedbackDiv.textContent = '';
+    }
+}
+
+document.getElementById('courierEmail').addEventListener('blur', async function() {
+    const email = this.value.trim();
+    if (email) {
+        const isDuplicate = await checkDuplicateField("email", email);
+        if (isDuplicate) {
+            showFieldError(this, 'Email already exists');
+        } else {
+            clearFieldError(this);
+        }
+    }
+});
+
+document.getElementById('courierPhone').addEventListener('blur', async function() {
+    const phone = this.value.trim();
+    if (phone) {
+        const isDuplicate = await checkDuplicateField("phone", phone);
+        if (isDuplicate) {
+            showFieldError(this, 'Nomor telepon already exists');
+        } else {
+            clearFieldError(this);
+        }
+    }
+});
+
+['courierEmail', 'courierPhone'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function() {
+        clearFieldError(this);
+    });
+});
+
 document.getElementById('addCourierForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = {
-        name: document.getElementById('courierName').value,
-        phone: document.getElementById('courierPhone').value,
-        email: document.getElementById('courierEmail').value,
-        address: document.getElementById('courierAddress').value,
+        name: document.getElementById('courierName').value.trim(),
+        phone: document.getElementById('courierPhone').value.trim(),
+        email: document.getElementById('courierEmail').value.trim(),
+        address: document.getElementById('courierAddress').value.trim(),
         area: document.getElementById('courierArea').value,
         status: document.getElementById('courierStatus').value
     };
@@ -26,7 +86,13 @@ document.getElementById('addCourierForm').addEventListener('submit', async (e) =
             await loadCouriers(); 
             e.target.reset();
         } else {
-            await showErrorMessage('Gagal', result.message);
+            if (result.field) {
+                const inputElement = document.getElementById(`courier${result.field.charAt(0).toUpperCase() + result.field.slice(1)}`);
+                showFieldError(inputElement, result.message);
+                inputElement.focus();
+            } else {
+                await showErrorMessage('Gagal', result.message);
+            }
         }
     } catch (error) {
         console.error('Error:', error);
@@ -80,7 +146,6 @@ async function loadCouriers() {
     }
 }
 
-
 async function editCourier(courierId) {
     try {
         const courier = await eel.get_courier_by_id(courierId)();
@@ -95,17 +160,17 @@ async function editCourier(courierId) {
         new bootstrap.Modal(document.getElementById('editModal')).show();
     } catch (error) {
         console.error('Error:', error);
-        alert('Terjadi kesalahan saat memuat data kurir');
+        await showErrorMessage('Error', 'Terjadi kesalahan saat memuat data kurir');
     }
 }
 
 async function updateCourier() {
     const formData = {
         id: document.getElementById('edit_id_courier').value,
-        name: document.getElementById('edit_nama_courier').value,
-        phone: document.getElementById('edit_phone_courier').value,
-        email: document.getElementById('edit_email_courier').value,
-        address: document.getElementById('edit_address_courier').value,
+        name: document.getElementById('edit_nama_courier').value.trim(),
+        phone: document.getElementById('edit_phone_courier').value.trim(),
+        email: document.getElementById('edit_email_courier').value.trim(),
+        address: document.getElementById('edit_address_courier').value.trim(),
         area: document.getElementById('edit_area_courier').value,
         status: document.getElementById('edit_status_courier').value
     };
@@ -125,7 +190,7 @@ async function updateCourier() {
         }
     } catch (error) {
         console.error('Error:', error);
-        await showErrorMessage('Error', 'Terjadi kesalahan saat memperbarui data kurir');
+        await showErrorMessage('Error', 'Terjadi kesalahan saat mengupdate kurir');
     }
 }
 

@@ -12,13 +12,32 @@ def find_user_by_email(email):
     return db.users.find_one({"email": email})
 
 def find_user_by_credentials(username, password):
-    return db.users.find_one({"username": username, "password": password})
+    pipeline = [
+        {"$match": {"username": username, "password": password}},
+        {"$limit": 1},
+        {"$project": {
+            "_id": 1,
+            "name": 1,
+            "username": 1,
+            "email": 1,
+            "role": 1,
+            "address": 1,
+            "phone": 1
+        }}
+    ]
+    result = list(db.users.aggregate(pipeline))
+    return result[0] if result else None
 
 def insert_user(user_data):
     db.users.insert_one(user_data)
 
 def get_last_user():
-    return db.users.find_one(sort=[("_id", -1)])
+    pipeline = [
+        {"$sort": {"_id": -1}},
+        {"$limit": 1}
+    ]
+    result = list(db.users.aggregate(pipeline))
+    return result[0] if result else None
 
 
 # pickups collection

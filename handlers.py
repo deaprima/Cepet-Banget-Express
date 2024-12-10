@@ -215,20 +215,68 @@ def get_couriers():
     couriers = list(db.couriers.find({}, {'_id': 0}))
     return couriers
 
+# @eel.expose
+# def get_courier_by_id(courier_id):
+#     try:
+#         courier = db.couriers.find_one({"id_courier": courier_id})
+#         if courier:
+#             return courier
+#         return None
+#     except Exception as e:
+#         print("Error fetching courier:", str(e))
+#         return None
+
 @eel.expose
 def get_courier_by_id(courier_id):
     try:
-        courier = db.couriers.find_one({"id_courier": courier_id})
-        if courier:
-            return courier
-        return None
+        pipeline = [
+            {"$match": {"id_courier": courier_id}},
+            {"$limit": 1},
+            {"$project": {
+                "_id": 0,
+                "id_courier": 1,
+                "name": 1,
+                "phone": 1,
+                "email": 1,
+                "address": 1,
+                "area": 1,
+                "status": 1
+            }}
+        ]
+        result = list(db.couriers.aggregate(pipeline))
+        return result[0] if result else None
     except Exception as e:
         print("Error fetching courier:", str(e))
         return None
 
 @eel.expose
+def check_duplicate_courier_field(field, value, current_courier_id=None):
+    try:
+        pipeline = [
+            {"$match": {
+                field: value,
+                "id_courier": {"$ne": current_courier_id}
+            }},
+            {"$limit": 1},
+            {"$project": {"id_courier": 1}}
+        ]
+        result = list(db.couriers.aggregate(pipeline))
+        return {"isDuplicate": len(result) > 0}
+    except Exception as e:
+        print(f"Error checking duplicate courier {field}:", str(e))
+        return {"isDuplicate": True}
+
+@eel.expose
 def add_courier(courier_data):
     try:
+        email_check = check_duplicate_courier_field("email", courier_data["email"])
+        if email_check["isDuplicate"]:
+            return {"status": "error", "message": "Email already exists", "field": "email"}
+
+        phone_check = check_duplicate_courier_field("phone", courier_data["phone"])
+        if phone_check["isDuplicate"]:
+            return {"status": "error", "message": "Phone number already exists", "field": "phone"}
+        
         last_courier = db.couriers.find_one(sort=[("id_courier", -1)])
         if last_courier and str(last_courier["id_courier"]).startswith("C"):
             last_id = int(last_courier["id_courier"][1:])
@@ -331,12 +379,29 @@ def update_pickup_status(request_id, new_status):
 
 
 ################################### USERS HANDLER ###################################
+# @eel.expose
+# def check_duplicate_field(field, value, current_user_id):
+#     try:
+#         query = {field: value, "_id": {"$ne": current_user_id}}
+#         existing_user = db.users.find_one(query)
+#         return {"isDuplicate": existing_user is not None}
+#     except Exception as e:
+#         print(f"Error checking duplicate {field}:", str(e))
+#         return {"isDuplicate": True}
+
 @eel.expose
 def check_duplicate_field(field, value, current_user_id):
     try:
-        query = {field: value, "_id": {"$ne": current_user_id}}
-        existing_user = db.users.find_one(query)
-        return {"isDuplicate": existing_user is not None}
+        pipeline = [
+            {"$match": {
+                field: value,
+                "_id": {"$ne": current_user_id}
+            }},
+            {"$limit": 1},
+            {"$project": {"_id": 1}}
+        ]
+        result = list(db.users.aggregate(pipeline))
+        return {"isDuplicate": len(result) > 0}
     except Exception as e:
         print(f"Error checking duplicate {field}:", str(e))
         return {"isDuplicate": True}
