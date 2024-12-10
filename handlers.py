@@ -215,17 +215,6 @@ def get_couriers():
     couriers = list(db.couriers.find({}, {'_id': 0}))
     return couriers
 
-# @eel.expose
-# def get_courier_by_id(courier_id):
-#     try:
-#         courier = db.couriers.find_one({"id_courier": courier_id})
-#         if courier:
-#             return courier
-#         return None
-#     except Exception as e:
-#         print("Error fetching courier:", str(e))
-#         return None
-
 @eel.expose
 def get_courier_by_id(courier_id):
     try:
@@ -379,16 +368,6 @@ def update_pickup_status(request_id, new_status):
 
 
 ################################### USERS HANDLER ###################################
-# @eel.expose
-# def check_duplicate_field(field, value, current_user_id):
-#     try:
-#         query = {field: value, "_id": {"$ne": current_user_id}}
-#         existing_user = db.users.find_one(query)
-#         return {"isDuplicate": existing_user is not None}
-#     except Exception as e:
-#         print(f"Error checking duplicate {field}:", str(e))
-#         return {"isDuplicate": True}
-
 @eel.expose
 def check_duplicate_field(field, value, current_user_id):
     try:
