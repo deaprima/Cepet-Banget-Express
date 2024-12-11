@@ -353,16 +353,27 @@ async function logout() {
 }
 
 function updateUserInfo() {
-  const userData = JSON.parse(localStorage.getItem('userData'));
-  if (userData) {
-
-      document.getElementById('dropdown-username').textContent = userData.name;
-      document.getElementById('dropdown-email').textContent = userData.email;
-      
+  try {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    console.log('userData:', userData);
+    if (userData) {
+      const dropdownUsername = document.getElementById('dropdown-username');
+      const dropdownEmail = document.getElementById('dropdown-email');
       const usernameSpan = document.getElementById('username');
-      if (usernameSpan) {
-          usernameSpan.textContent = userData.name;
-      }
+      
+      console.log('Elements:', { dropdownUsername, dropdownEmail, usernameSpan });
+
+      if (dropdownUsername) dropdownUsername.textContent = userData.name;
+      if (dropdownEmail) dropdownEmail.textContent = userData.email;
+      if (usernameSpan) usernameSpan.textContent = userData.name;
+    } else {
+      console.log('No user data found in localStorage');
+    }
+  } catch (error) {
+    console.error('Error in updateUserInfo:', error);
   }
 }
-document.addEventListener('DOMContentLoaded', updateUserInfo);
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateUserInfo();
+});
